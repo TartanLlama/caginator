@@ -16,16 +16,26 @@ const run = async () => {
   for (let head of heads.data) {
     core.debug(`Caginating ${head.ref}`);
     const headCommit = await octokit.git.getCommit({ ...repoInfo, commit_sha: head.object.sha });
-    let tree = await octokit.git.getTree({ ...repoInfo, tree_sha: headCommit.data.tree.sha, recursive: 1 });
+    let tree = await octokit.git.getTree({ ...repoInfo, tree_sha: headCommit.data.tree.sha });
 
-    for (let object of tree.data.tree) {
-      core.debug(`  Caginating ${object.path}`);
-      object.sha = blob.data.sha;
+    const handleObjects = async (objects) => {
+      for (let object of objects) {
+        core.debug(`  Caginating ${object.path}`);
+        if (object.type == 'tree' && object.path != ".github") {
+          const innerTree = await octokit.git.getTree({ ...repoInfo, tree_sha: object.sha });
+          const newTree = await handleObjects(innerTree.data.tree);
+          object.sha = newTree.data.sha;
+        }
+        else if (object.type == 'blob') {
+          object.sha = blob.data.sha;
+        }
+      }
+      return octokit.git.createTree({ ...repoInfo, tree: objects });
     }
 
-    const newTree = await octokit.git.createTree({ ...repoInfo, tree: tree.data.tree });
+    const newTree = await handleObjects(tree.data.tree);
     const newCommit = await octokit.git.createCommit({ ...repoInfo, tree: newTree.data.sha, message: 'Caginate', parents: [headCommit.data.sha] });
-    await octokit.git.updateRef({ ...repoInfo, ref: head.ref, sha: newCommit.data.sha });
+    await octokit.git.updateRef({ ...repoInfo, ref: head.ref.substr(5), sha: newCommit.data.sha });
   }
 }
 
