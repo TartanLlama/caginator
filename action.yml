@@ -1,10 +1,9 @@
-name: 'Node 12 Template Action'
-description: 'Get started with Node actions'
-author: 'GitHub'
+name: 'Caginator'
+description: 'Nicholas Cage your repository.'
+author: 'TartanLlama'
 inputs: 
-  myInput:
-    description: 'Input to use'
-    default: 'world'
+  myToken:
+    description: 'A token with access to your repository scoped in as a secret.'
 runs:
   using: 'node12'
   main: 'lib/main.js'
