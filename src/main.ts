@@ -10,7 +10,7 @@ const repoInfo = github.context.repo;
 
 const run = async () => {
   const imageAsBase64 = fs.readFileSync('./8765i.jpg', 'base64');
-  const blob = await octokit.git.createBlob({ ...repoInfo, content: 'Hello', encoding: 'base64' });
+  const blob = await octokit.git.createBlob({ ...repoInfo, content: imageAsBase64, encoding: 'base64' });
   const heads = await octokit.git.listRefs({ ...repoInfo, namespace: 'heads/' });
 
   for (let head of heads.data) {
