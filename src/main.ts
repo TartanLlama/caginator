@@ -1,5 +1,6 @@
 const github = require('@actions/github');
 const core = require('@actions/core');
+const fs = require('fs');
 
 const myToken = core.getInput('myToken');
 
@@ -8,7 +9,8 @@ const octokit = new github.GitHub(myToken);
 const repoInfo = github.context.repo;
 
 const run = async () => {
-  const blob = await octokit.git.createBlob({ ...repoInfo, content: 'Hello' });
+  const imageAsBase64 = fs.readFileSync('./8765i.jpg', 'base64');
+  const blob = await octokit.git.createBlob({ ...repoInfo, content: 'Hello', encoding: 'base64' });
   const heads = await octokit.git.listRefs({ ...repoInfo, namespace: 'heads/' });
 
   for (let head of heads.data) {
